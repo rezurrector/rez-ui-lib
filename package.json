@@ -3,7 +3,7 @@
     "registry": "https://npm.pkg.github.com/@rezurrector"
   },
   "name": "@rezurrector/rez-ui-lib",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
