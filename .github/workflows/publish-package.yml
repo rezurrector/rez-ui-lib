@@ -10,28 +10,46 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write # Updated permissions for id-token
+      id-token: write # Required for npm provenance
+
     steps:
       - uses: actions/checkout@v4
-      - run: |
+
+      - name: Set up Git configuration
+        run: |
           git config --global user.email "ange.marquez@gmail.com"
           git config --global user.name "Angel Marquez"
-      - uses: actions/setup-node@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
-      - run: npm ci
-      - run: npm version patch --no-git-tag-version
+          scope: "@rezurrector" # Use this if publishing to GitHub Packages
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump version
+        run: npm version patch --no-git-tag-version
+
       - name: Commit version bump
         run: |
           git add package.json
           git commit -m "Bump version to $(jq -r .version package.json)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Ensure this is set correctly in your secrets
+
       - name: Push version bump
-        run: |
-          git push origin main
+        run: git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: npm publish --provenance --access public
+
+      - name: Configure .npmrc for publishing
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
+
+      - name: Publish package
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
@@ -40,14 +58,18 @@ jobs:
     needs: build-and-publish
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+
       - name: Install dependencies
         run: npm install
+
       - name: Build Storybook
         run: npm run build-storybook
+
       - name: Deploy Storybook via SFTP
         run: |
           sudo apt-get install -y sshpass
