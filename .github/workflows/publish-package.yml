@@ -11,7 +11,6 @@ jobs:
     permissions:
       contents: write
       id-token: write # Required for npm provenance
-      packages: write # Required for publishing to GitHub Packages
 
     steps:
       - uses: actions/checkout@v4
@@ -21,18 +20,18 @@ jobs:
           git config --global user.email "ange.marquez@gmail.com"
           git config --global user.name "Angel Marquez"
 
-      - name: Set up Node.js for npm
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20.x"
           registry-url: "https://registry.npmjs.org"
-          scope: "@rezurrector" # Adjust scope based on publishing target
+          scope: "@rezurrector" # Use this if publishing to GitHub Packages
 
       - name: Install dependencies
         run: npm ci
 
       - name: Build the project
-        run: npm run build # Ensure this matches your build script
+        run: npm run build # Make sure this matches your build script
 
       - name: Bump version
         run: npm version patch --no-git-tag-version
@@ -42,28 +41,20 @@ jobs:
           git add package.json
           git commit -m "Bump version to $(jq -r .version package.json)"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Ensure this is set correctly in your secrets
 
       - name: Push version bump
         run: git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure .npmrc for npm registry
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" > ~/.npmrc
+      - name: Configure .npmrc for publishing
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
 
-      - name: Publish package to npm
+      - name: Publish package
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-
-      - name: Configure .npmrc for GitHub Packages
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
-
-      - name: Publish package to GitHub Packages
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     runs-on: ubuntu-latest
