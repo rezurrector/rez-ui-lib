@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build the project
+        run: npm run build # Make sure this matches your build script
+
       - name: Bump version
         run: npm version patch --no-git-tag-version
 
