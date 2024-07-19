@@ -27,7 +27,7 @@ jobs:
       - name: Deploy Storybook via SFTP
         run: |
           sudo apt-get install -y sshpass
-          sshpass -p "$SSH_PASSWORD" sftp -o StrictHostKeyChecking=no angelrob@docs.rezurrector.com <<EOF
+          sshpass -p "$SSH_PASSWORD" sftp -o StrictHostKeyChecking=no angelrob@package.rezurrector.com <<EOF
             mkdir -p /home2/angelrob/package.rezurrector.com
             put -r ./storybook-static/* /home2/angelrob/package.rezurrector.com
             quit
