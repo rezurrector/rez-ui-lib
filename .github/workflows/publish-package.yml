@@ -9,8 +9,7 @@ jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write
+      contents: write # Updated permissions
     steps:
       - uses: actions/checkout@v4
       - run: |
@@ -30,7 +29,7 @@ jobs:
         run: |
           git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
