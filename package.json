@@ -1,5 +1,8 @@
 {
   "name": "@rezurrector/rez-ui-lib",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@rezurrector"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/rezurrector/rez-ui-lib.git"
