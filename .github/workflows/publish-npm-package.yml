@@ -13,6 +13,10 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+      # Setup Git user
+      - run: |
+          git config --global user.email "ange.marquez@gmail.com"
+          git config --global user.name "Angel Marquez"
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v4
         with:
