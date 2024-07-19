@@ -1,4 +1,4 @@
-name: publish on github
+name: Publish and Deploy
 
 on:
   push:
@@ -6,18 +6,51 @@ on:
       - main
 
 jobs:
-  publish-gpr:
+  build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - run: |
+          git config --global user.email "ange.marquez@gmail.com"
+          git config --global user.name "Angel Marquez"
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          registry-url: https://npm.pkg.github.com/
-          scope: "@rezurrector"
-      - run: npm install
-      - run: npm run test
-      - run: npm run build
-      - run: npm publish
+          node-version: "20.x"
+          registry-url: "https://registry.npmjs.org"
+      - run: npm ci
+      - run: npm version patch --no-git-tag-version
+      - name: Commit version bump
+        run: |
+          git add package.json
+          git commit -m "Bump version to $(jq -r .version package.json)"
+          git push origin main
+      - run: npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-publish
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm install
+      - name: Build Storybook
+        run: npm run build-storybook
+      - name: Deploy Storybook via SFTP
+        run: |
+          sudo apt-get install -y sshpass
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" sftp -o StrictHostKeyChecking=no angelrob@package.rezurrector.com <<EOF
+            mkdir -p /home2/angelrob/package.rezurrector.com
+            put -r ./storybook-static/* /home2/angelrob/package.rezurrector.com
+            quit
+          EOF
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
