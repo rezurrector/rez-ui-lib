@@ -26,7 +26,11 @@ jobs:
         run: |
           git add package.json
           git commit -m "Bump version to $(jq -r .version package.json)"
+      - name: Push version bump
+        run: |
           git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
