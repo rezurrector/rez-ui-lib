@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: write
       id-token: write # Required for npm provenance
+      packages: write # Required for publishing to GitHub Packages
 
     steps:
       - uses: actions/checkout@v4
@@ -36,25 +37,37 @@ jobs:
       - name: Bump version
         run: npm version patch --no-git-tag-version
 
+      - name: Extract version
+        id: get_version
+        run: echo "VERSION=$(jq -r .version package.json)" >> $GITHUB_ENV
+
       - name: Commit version bump
         run: |
           git add package.json
           git commit -m "Bump version to $(jq -r .version package.json)"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Ensure this is set correctly in your secrets
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push version bump
         run: git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure .npmrc for publishing
+      - name: Configure .npmrc for publishing to npm
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" >> ~/.npmrc
 
-      - name: Publish package
+      - name: Publish package to npm
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
+      - name: Configure .npmrc for publishing to GitHub Packages
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+
+      - name: Publish package to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     runs-on: ubuntu-latest
