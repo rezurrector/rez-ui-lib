@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/rezurrector/rez-ui-lib.git"
   },
-  "version": "1.0.37",
+  "version": "1.0.38",
   "type": "module",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -19,7 +19,7 @@
     "test:ui": "vitest --ui",
     "format": "prettier --write --parser typescript '**/*.{ts,tsx}'",
     "lint": "eslint . --ext .ts,.tsx --ignore-path .gitignore --fix",
-    "build": "tsc && vite build",
+    "build": "node api.js && tsc && vite build",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "pub": "npm version patch --force && npm publish"
